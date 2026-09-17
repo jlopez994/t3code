@@ -6861,7 +6861,10 @@ export default function ChatView(props: ChatViewProps) {
       }
 
       if (command === "thread.whip") {
-        if (!canInterruptRunningThread) return;
+        // Only claim the key when a whip can actually go out: with an
+        // approval or a question open, the same key must still reach the
+        // dialog (Escape closes it).
+        if (!canInterruptRunningThread || !queuedMessageActionsRef.current.canWhip) return;
         event.preventDefault();
         event.stopPropagation();
         if (!event.repeat) queuedMessageActionsRef.current.whip();
@@ -8630,12 +8633,19 @@ export default function ChatView(props: ChatViewProps) {
   // Keyed by thread: this ChatView instance is reused across server threads,
   // and one thread's cooldown must not swallow another's first whip.
   const whipStateByThreadRef = useRef(new Map<string, { lastAt: number; count: number }>());
+  const canWhip =
+    activeThreadKey !== null &&
+    phase === "running" &&
+    !queueBlockedByPendingRequest &&
+    !queueSendGate;
   const queuedMessageActionsRef = useRef({
     steer: (_id: string) => {},
     remove: (_id: string) => {},
     whip: (): boolean => false,
+    canWhip: false,
   });
   queuedMessageActionsRef.current = {
+    canWhip,
     steer: (id) => {
       const message = queuedMessages.find((entry) => entry.id === id);
       if (!message || sendInFlightRef.current || queueBlockedByPendingRequest) return;
@@ -8646,14 +8656,7 @@ export default function ChatView(props: ChatViewProps) {
     // WHIP_COOLDOWN_MS per thread and rides the same take/hold/restore path
     // as any queued message. Returns whether the order went out.
     whip: () => {
-      if (
-        !activeThreadKey ||
-        phase !== "running" ||
-        queueBlockedByPendingRequest ||
-        queueSendGate
-      ) {
-        return false;
-      }
+      if (!canWhip || !activeThreadKey) return false;
       playWhipCrack();
       const now = performance.now();
       const state = whipStateByThreadRef.current.get(activeThreadKey) ?? {
