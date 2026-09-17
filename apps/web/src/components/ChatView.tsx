@@ -6860,17 +6860,6 @@ export default function ChatView(props: ChatViewProps) {
         return;
       }
 
-      if (command === "thread.whip") {
-        // Only claim the key when a whip can actually go out: with an
-        // approval or a question open, the same key must still reach the
-        // dialog (Escape closes it).
-        if (!canInterruptRunningThread || !queuedMessageActionsRef.current.canWhip) return;
-        event.preventDefault();
-        event.stopPropagation();
-        if (!event.repeat) queuedMessageActionsRef.current.whip();
-        return;
-      }
-
       if (command === "thread.stop") {
         // An unavailable command should not shadow contextual shortcuts such as Escape to close a dialog.
         if (!canInterruptRunningThread) return;
@@ -8642,10 +8631,8 @@ export default function ChatView(props: ChatViewProps) {
     steer: (_id: string) => {},
     remove: (_id: string) => {},
     whip: (): boolean => false,
-    canWhip: false,
   });
   queuedMessageActionsRef.current = {
-    canWhip,
     steer: (id) => {
       const message = queuedMessages.find((entry) => entry.id === id);
       if (!message || sendInFlightRef.current || queueBlockedByPendingRequest) return;

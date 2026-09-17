@@ -60,8 +60,6 @@ for itself, and to keep going; the wording rotates so repeated whips do not
 read the same. It goes out right away as a steer, so on providers that
 restart the turn on a steer it behaves like any other immediate follow-up.
 The whip stays holstered while the agent waits for an approval or an answer.
-Assign `thread.whip` a shortcut in **Settings → Keybindings** to crack it from
-the keyboard.
 
 ## Queue messages offline on mobile
 

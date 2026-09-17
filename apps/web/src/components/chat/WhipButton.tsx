@@ -10,7 +10,6 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "~/lib/utils";
-import { preloadWhipCrack } from "~/lib/whipSound";
 import { Button } from "../ui/button";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
 import {
@@ -262,8 +261,6 @@ export const WhipButton = memo(function WhipButton({
     (event: ReactPointerEvent<HTMLButtonElement>) => {
       onPointerDown?.(event);
       if (disabled || event.button !== 0) return;
-      // A real gesture: the one place the browser lets audio wake up.
-      preloadWhipCrack();
       if (prefersReducedMotion()) return;
       // Capture keeps the drag alive outside the button. A pointer that is
       // already gone (or a synthetic event) cannot be captured; the rope still
