@@ -174,11 +174,11 @@ export const WhipButton = memo(function WhipButton({
   // when the dropped rope is gone or on unmount. Fixed 60Hz steps keep the
   // feel the same on 120Hz displays, and the loop sleeps once a held rope
   // hangs still until the pointer moves again, so a whip held idle repaints
-  // nothing. The rope is read from its ref each frame so picking the whip up
-  // again mid-fall swaps in the new rope without restarting the loop.
+  // nothing. The rope and pointer are read from their refs each frame so
+  // picking the whip up again mid-fall swaps in the new rope and hand without
+  // restarting the loop.
   useEffect(() => {
     if (!active) return;
-    const pointer = pointerRef.current;
     const pickedUpAt = performance.now();
     const snapped = createSnapDetector();
     let last = pickedUpAt;
@@ -188,6 +188,7 @@ export const WhipButton = memo(function WhipButton({
     let frameId = 0;
     function frame(now: number) {
       const rope = ropeRef.current;
+      const pointer = pointerRef.current;
       if (!rope) {
         frameId = 0;
         return;
@@ -383,7 +384,12 @@ export const WhipButton = memo(function WhipButton({
         ? createPortal(
             <svg
               ref={overlayRef}
-              className="pointer-events-none fixed inset-0 z-[9999] h-full w-full"
+              // While held the overlay owns the cursor, so it stays a closed
+              // hand wherever the drag goes; once dropped it must not block clicks.
+              className={cn(
+                "fixed inset-0 z-[9999] h-full w-full",
+                held ? "cursor-grabbing" : "pointer-events-none",
+              )}
               aria-hidden="true"
               fill="none"
               strokeLinecap="round"
